@@ -9,13 +9,6 @@ npm install airline-codes
 
 ## Usage
 
-The list of airline codes is wrapped in a Backbone Collection, so have access to all normal collection methods like `findWhere`, `at`, and `sort`.
-
-```javascript
-var airlines = require('airline-codes');
-
-console.log(airlines.findWhere({ iata: 'WS' }).get('name'));
-//=> Westjet
 ```
 
 If you'd like only the JSON list of airline codes, you can use either the Backbone Collection's `toJSON` method or import the json list directly:

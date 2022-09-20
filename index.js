@@ -1,8 +1,14 @@
-var airlinesJSON = require('./airlines.json');
-var Backbone = require('backbone');
+const airlinesJSON = require('./airlines.json');
 
-var airlines = new Backbone.Collection(airlinesJSON);
+const getAirlineFromIATACode = (iataCode) => {
+  return airlinesJSON.find((s) => s.iata === iataCode) || null;
+};
 
-airlines.comparator = 'name';
+const getAirlineFromICAOCode = (icaoCode) => {
+  return airlinesJSON.find((s) => s.icao === icaoCode) || null;
+};
 
-module.exports = airlines;
+module.exports = {
+  getAirlineFromIATACode,
+  getAirlineFromICAOCode,
+};
