@@ -1,6 +1,6 @@
 {
   "name": "airline-codes",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Airline codes (IATA) and information pulled from OpenFlights.org.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/travelin/airline-codes"
+    "url": "https://github.com/Travelin-ai/airline-codes"
   },
   "keywords": [
     "airline",
@@ -18,9 +18,9 @@
   ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/travelin/airline-codes/issues"
+    "url": "https://github.com/Travelin-ai/airline-codes/issues"
   },
-  "homepage": "https://github.com/travelin/airline-codes",
+  "homepage": "https://github.com/Travelin-ai/airline-codes",
   "dependencies": {
     "JSONStream": "^1.0.4",
     "csv": "^5.1.3",
