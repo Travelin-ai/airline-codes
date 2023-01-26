@@ -12320,4 +12320,6 @@
 {"id":"21270","name":"Air Carnival","alias":"","iata":"2S","icao":"\\N","callsign":"","country":"India","active":"Y"}
 ,
 {"id":"21317","name":"Svyaz Rossiya","alias":"Russian Commuter ","iata":"7R","icao":"SJM","callsign":"RussianConnecty","country":"Russia","active":"Y"}
+,
+{"id":"21318","name":"Amadeus Six","alias":" ","iata":"6X","icao":"","callsign":"","country":"Spain","active":"Y"}
 ]
