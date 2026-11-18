@@ -35,6 +35,9 @@ const NEVER_ACTIVE_TYPES = new Set(['G', 'T', 'D']);
 const TYPE_RANK = { C: 1, CT: 1, R: 2 };
 const OPEN_ENDED = '9999-12-31';
 
+// Plain code-unit order, so the output is the same whatever the machine's locale.
+const compareText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 function parseOptd(text) {
   const lines = text.split(/\r?\n/).filter((line) => line !== '');
   const header = lines[0].split('^');
@@ -88,9 +91,9 @@ function toRecord(row, asOf) {
 const compareCandidates = (a, b) =>
   Boolean(b.entry.numeric) - Boolean(a.entry.numeric) ||
   (TYPE_RANK[a.type] || 0) - (TYPE_RANK[b.type] || 0) ||
-  b.from.localeCompare(a.from) ||
+  compareText(b.from, a.from) ||
   b.flightFrequency - a.flightFrequency ||
-  a.entry.id.localeCompare(b.entry.id);
+  compareText(a.entry.id, b.entry.id);
 
 // Marks one current carrier per IATA code active and returns the codes that had several.
 function pickHolders(records) {
@@ -187,10 +190,10 @@ const compareOutput = (a, b) => {
   const bActive = b.entry.active === 'Y';
   if (aActive !== bActive) return aActive ? -1 : 1;
   return (
-    (aActive ? 0 : b.to.localeCompare(a.to) || b.from.localeCompare(a.from)) ||
-    (a.entry.iata || '~').localeCompare(b.entry.iata || '~') ||
-    a.entry.icao.localeCompare(b.entry.icao) ||
-    a.entry.id.localeCompare(b.entry.id)
+    (aActive ? 0 : compareText(b.to, a.to) || compareText(b.from, a.from)) ||
+    compareText(a.entry.iata || '~', b.entry.iata || '~') ||
+    compareText(a.entry.icao, b.entry.icao) ||
+    compareText(a.entry.id, b.entry.id)
   );
 };
 
@@ -229,7 +232,7 @@ function describeChanges(previous, entries) {
     else if (before.get(code) !== name) lines.push(`  ~ ${code} ${before.get(code)} -> ${name}`);
   }
   for (const [code, name] of before) if (!after.has(code)) lines.push(`  - ${code} ${name}`);
-  return lines.sort((a, b) => a.slice(4).localeCompare(b.slice(4)));
+  return lines.sort((a, b) => compareText(a.slice(4), b.slice(4)));
 }
 
 async function main() {
@@ -240,27 +243,32 @@ async function main() {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf || '')) throw new Error('--date takes a date like 2026-11-18');
 
   let snapshot = fs.existsSync(SNAPSHOT_INFO_PATH) ? JSON.parse(fs.readFileSync(SNAPSHOT_INFO_PATH, 'utf8')) : {};
-  if (!offline) {
+  let csvText;
+  if (offline) {
+    csvText = fs.readFileSync(SNAPSHOT_PATH, 'utf8');
+  } else {
     console.log(`Downloading ${SOURCE_URL}`);
     const response = await fetch(SOURCE_URL);
     if (!response.ok) throw new Error(`Download failed: HTTP ${response.status}`);
-    fs.writeFileSync(SNAPSHOT_PATH, await response.text());
+    csvText = await response.text();
     snapshot = { source: SOURCE_URL, downloaded: new Date().toISOString().slice(0, 10) };
   }
 
   const previous = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'));
+  // Build before writing anything, so a broken download leaves the committed files as they were.
   const { entries, shared, unchangedOverrides } = build({
-    csvText: fs.readFileSync(SNAPSHOT_PATH, 'utf8'),
+    csvText,
     overrides: JSON.parse(fs.readFileSync(OVERRIDES_PATH, 'utf8')),
     asOf,
   });
+  if (!offline) fs.writeFileSync(SNAPSHOT_PATH, csvText);
   fs.writeFileSync(OUTPUT_PATH, serialize(entries));
   fs.writeFileSync(SNAPSHOT_INFO_PATH, `${JSON.stringify({ ...snapshot, asOf }, null, 2)}\n`);
 
   const activeCount = entries.filter((entry) => entry.active === 'Y').length;
   console.log(`Wrote ${entries.length} airlines, ${activeCount} of them active, as of ${asOf}.`);
   console.log(`\nCodes with more than one current carrier (check each pick; pin another in overrides.json):`);
-  for (const { code, holder, others, pinned } of shared.sort((a, b) => a.code.localeCompare(b.code))) {
+  for (const { code, holder, others, pinned } of shared.sort((a, b) => compareText(a.code, b.code))) {
     const holderName = holder ? holder.name : 'no one';
     console.log(`  ${code} ${holderName} over ${others.join(', ')}${pinned ? ' (pinned in overrides.json)' : ''}`);
   }
