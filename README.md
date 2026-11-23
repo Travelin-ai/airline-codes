@@ -4,8 +4,10 @@
 ## Install
 
 ```
-npm install git+https://github.com/Travelin-ai/airline-codes.git
+npm install "git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.0"
 ```
+
+This installs the newest tagged release in the range. [Releases](#releases) explains the tags.
 
 ## Usage
 
@@ -110,6 +112,30 @@ Any other fields in an override replace the entry's values. Setting `"active": "
   }
 ]
 ```
+
+## Releases
+
+The apps install a range of tagged versions, not `main`, so a merge reaches them only once it is tagged and someone updates them.
+
+1. In the pull request, raise `version` in `package.json`:
+   - patch for a data refresh or a name fix;
+   - minor for a new field;
+   - major when a field changes meaning or goes away.
+2. After the merge, tag the merge commit on `main` with the version and the pull request:
+
+   ```
+   git checkout main && git pull
+   git tag -a v2.0.0 -m "v2.0.0: build the list from OpenTravelData (PR #2)"
+   git push origin v2.0.0
+   ```
+
+3. An app depends on a range of those tags:
+
+   ```json
+   "airline-codes": "git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.0"
+   ```
+
+   `npm ci` installs the version in the app's lockfile, and `npm update airline-codes` moves the app to the newest tag in its range. A new major version needs the range changed by hand.
 
 ## Data license
 
