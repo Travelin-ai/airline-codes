@@ -1,6 +1,6 @@
 {
-  "name": "airline-codes",
-  "version": "2.0.0",
+  "name": "@travelin-ai/airline-codes",
+  "version": "2.0.1",
   "description": "Airline codes (IATA, ICAO, ticket prefix) and names from OpenTravelData.",
   "main": "index.js",
   "scripts": {

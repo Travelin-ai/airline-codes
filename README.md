@@ -4,15 +4,16 @@
 ## Install
 
 ```
-npm install "git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.0"
+npm install "@travelin-ai/airline-codes@git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.1"
 ```
 
 This installs the newest tagged release in the range. [Releases](#releases) explains the tags.
+The package is named `@travelin-ai/airline-codes`, as the unscoped `airline-codes` on npm is an unrelated package.
 
 ## Usage
 
 ```javascript
-const { getAirlineFromIATACode, getAirlineFromICAOCode } = require('airline-codes');
+const { getAirlineFromIATACode, getAirlineFromICAOCode } = require('@travelin-ai/airline-codes');
 
 getAirlineFromIATACode('LH');
 // => { id: 'air-lufthansa-v1', name: 'Lufthansa', alias: '', iata: 'LH', icao: 'DLH',
@@ -25,7 +26,7 @@ getAirlineFromIATACode('$$');  // => null for an unknown or empty code
 If you'd like the whole list, import the JSON directly:
 
 ```javascript
-const airlines = require('airline-codes/airlines.json');
+const airlines = require('@travelin-ai/airline-codes/airlines.json');
 ```
 
 ### Fields
@@ -132,10 +133,10 @@ The apps install a range of tagged versions, not `main`, so a merge reaches them
 3. An app depends on a range of those tags:
 
    ```json
-   "airline-codes": "git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.0"
+   "@travelin-ai/airline-codes": "git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.1"
    ```
 
-   `npm ci` installs the version in the app's lockfile, and `npm update airline-codes` moves the app to the newest tag in its range. A new major version needs the range changed by hand.
+   `npm ci` installs the version in the app's lockfile, and `npm update @travelin-ai/airline-codes` moves the app to the newest tag in its range. A new major version needs the range changed by hand.
 
 ## Data license
 
