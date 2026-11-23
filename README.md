@@ -115,7 +115,7 @@ Any other fields in an override replace the entry's values. Setting `"active": "
 
 ## Releases
 
-The apps install a range of tagged versions, not `main`, so a merge reaches them only once it is tagged and someone updates them.
+The apps install a range of tagged versions, not `main`, so a merge reaches them only once it is tagged and someone updates them. Every merge to `main` needs a tag.
 
 1. In the pull request, raise `version` in `package.json`:
    - patch for a data refresh or a name fix;
