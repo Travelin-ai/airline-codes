@@ -4,7 +4,7 @@
 ## Install
 
 ```
-npm install "@travelin-ai/airline-codes@git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.1"
+npm install "@travelin-ai/airline-codes@github:Travelin-ai/airline-codes#semver:^2.0.1"
 ```
 
 This installs the newest tagged release in the range. [Releases](#releases) explains the tags.
@@ -133,7 +133,7 @@ The apps install a range of tagged versions, not `main`, so a merge reaches them
 3. An app depends on a range of those tags:
 
    ```json
-   "@travelin-ai/airline-codes": "git+https://github.com/Travelin-ai/airline-codes.git#semver:^2.0.1"
+   "@travelin-ai/airline-codes": "github:Travelin-ai/airline-codes#semver:^2.0.1"
    ```
 
    `npm ci` installs the version in the app's lockfile, and `npm update @travelin-ai/airline-codes` moves the app to the newest tag in its range. A new major version needs the range changed by hand.
