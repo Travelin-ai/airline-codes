@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const airlines = require('../airlines.json');
 const { getAirlineFromIATACode, getAirlineFromICAOCode } = require('..');
-const { build, serialize, SNAPSHOT_PATH, SNAPSHOT_INFO_PATH, OVERRIDES_PATH, OUTPUT_PATH } = require('../generate');
+const { build, serialize, checkRemovals, SNAPSHOT_PATH, SNAPSHOT_INFO_PATH, OVERRIDES_PATH, OUTPUT_PATH } = require('../generate');
 
 const FIELDS = ['id', 'name', 'alias', 'iata', 'icao', 'callsign', 'country', 'active', 'numeric'];
 const active = airlines.filter((airline) => airline.active === 'Y');
@@ -106,7 +106,7 @@ test('build picks one holder per shared code and applies overrides', () => {
   ].join('\n');
   const { entries } = build({
     csvText,
-    overrides: [{ note: 'rename', iata: 'AA', name: 'A' }, { note: 'add', id: 'new-cc', iata: 'CC', name: 'C', active: 'Y' }],
+    overrides: [{ reason: 'rename', iata: 'AA', name: 'A' }, { reason: 'add', id: 'new-cc', iata: 'CC', name: 'C', active: 'Y' }],
     asOf: '2026-01-01',
   });
   const find = (id) => entries.find((entry) => entry.id === id);
@@ -119,6 +119,16 @@ test('build picks one holder per shared code and applies overrides', () => {
   assert.equal(find('gds-x').active, 'N');
   assert.equal(find('new-cc').active, 'Y');
   assert.equal(find('alliance'), undefined);
-  assert.throws(() => build({ csvText, overrides: [{ iata: 'AA', name: 'A' }], asOf: '2026-01-01' }), /note/);
-  assert.throws(() => build({ csvText, overrides: [{ note: 'x', iata: 'BB', name: 'B' }], asOf: '2026-01-01' }), /no airline holds BB/);
+  assert.throws(() => build({ csvText, overrides: [{ iata: 'AA', name: 'A' }], asOf: '2026-01-01' }), /reason/);
+  assert.throws(() => build({ csvText, overrides: [{ reason: 'x', iata: 'BB', name: 'B' }], asOf: '2026-01-01' }), /no airline holds BB/);
+});
+
+test('a run that leaves too many active codes without a holder stops', () => {
+  // 200 active codes allow 2 removals (1%).
+  const previous = Array.from({ length: 200 }, (_, i) => ({ iata: `${i}`.padStart(3, 'A'), name: `Airline ${i}`, active: 'Y' }));
+  const keep = (count) => previous.slice(0, previous.length - count);
+  assert.doesNotThrow(() => checkRemovals(previous, keep(2)));
+  assert.throws(() => checkRemovals(previous, keep(3)), /3 active codes would lose their holder, more than 2/);
+  assert.doesNotThrow(() => checkRemovals(previous, keep(3), { allowMassRemoval: true }));
+  assert.doesNotThrow(() => checkRemovals(airlines, airlines));
 });

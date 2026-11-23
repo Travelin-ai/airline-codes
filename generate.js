@@ -8,6 +8,11 @@
  *   npm run generate                       download the latest OPTD file, then build
  *   node generate.js --offline             build from the committed optd_airlines.csv
  *   node generate.js --date 2026-11-18     decide who holds each code as of this date
+ *   node generate.js --allow-mass-removal  accept a run that leaves more than
+ *                                          MASS_REMOVAL_SHARE of the active codes without a holder
+ *
+ * A run builds and checks everything in memory first and only then writes, each file via a temp
+ * file and rename, so a failed or interrupted run leaves the committed files as they were.
  *
  * README.md explains how the holder of a code is picked and how overrides.json works.
  */
@@ -34,6 +39,10 @@ const NEVER_ACTIVE_TYPES = new Set(['G', 'T', 'D']);
 // Passenger kinds (blank, P, PC, PT, F) rank before cargo, and cargo before rail.
 const TYPE_RANK = { C: 1, CT: 1, R: 2 };
 const OPEN_ENDED = '9999-12-31';
+// A run that leaves more than this share of last run's active codes without a holder is almost
+// certainly reading a truncated download, not a wave of closures: validity dates alone end about
+// five codes a year. --allow-mass-removal overrides it for the rare real case.
+const MASS_REMOVAL_SHARE = 0.01;
 
 // Plain code-unit order, so the output is the same whatever the machine's locale.
 const compareText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -118,9 +127,9 @@ function applyOverrides(records, overrides) {
   const pinnedCodes = new Map();
   overrides.forEach((override, index) => {
     const label = `overrides.json entry ${index} (${override.id || override.iata})`;
-    const unknownKeys = Object.keys(override).filter((key) => key !== 'note' && !FIELDS.includes(key));
+    const unknownKeys = Object.keys(override).filter((key) => key !== 'reason' && !FIELDS.includes(key));
     if (unknownKeys.length) throw new Error(`${label} has unknown keys: ${unknownKeys.join(', ')}`);
-    if (!override.note) throw new Error(`${label} needs a "note" saying why it exists`);
+    if (!override.reason) throw new Error(`${label} needs a "reason" saying why it exists`);
     for (const field of FIELDS) {
       if (field in override && typeof override[field] !== 'string') {
         throw new Error(`${label}: "${field}" must be a string`);
@@ -222,8 +231,30 @@ function build({ csvText, overrides, asOf }) {
 
 const serialize = (entries) => `[\n${entries.map((entry) => JSON.stringify(entry)).join(',\n')}\n]\n`;
 
+const activeByCode = (list) => new Map(list.filter((a) => a.active === 'Y' && a.iata).map((a) => [a.iata, a.name]));
+
+// Throws when more than MASS_REMOVAL_SHARE of the previous active codes lose their holder.
+function checkRemovals(previous, entries, { allowMassRemoval = false } = {}) {
+  const before = activeByCode(previous);
+  const after = activeByCode(entries);
+  const removed = [...before.keys()].filter((code) => !after.has(code)).length;
+  const limit = Math.ceil(before.size * MASS_REMOVAL_SHARE);
+  if (removed > limit && !allowMassRemoval) {
+    throw new Error(
+      `${removed} active codes would lose their holder, more than ${limit} (${MASS_REMOVAL_SHARE * 100}% of the previous ${before.size}). ` +
+        'That usually means a truncated download; nothing was written. Re-run with --allow-mass-removal if the removals are real.'
+    );
+  }
+}
+
+// Writes every file to a sibling temp file first and only then renames them into place, so a
+// failed run leaves no half-written committed file behind (*.tmp is gitignored).
+function writeFilesAtomic(files) {
+  for (const [dest, content] of files) fs.writeFileSync(`${dest}.tmp`, content);
+  for (const [dest] of files) fs.renameSync(`${dest}.tmp`, dest);
+}
+
 function describeChanges(previous, entries) {
-  const activeByCode = (list) => new Map(list.filter((a) => a.active === 'Y' && a.iata).map((a) => [a.iata, a.name]));
   const before = activeByCode(previous);
   const after = activeByCode(entries);
   const lines = [];
@@ -238,6 +269,7 @@ function describeChanges(previous, entries) {
 async function main() {
   const args = process.argv.slice(2);
   const offline = args.includes('--offline');
+  const allowMassRemoval = args.includes('--allow-mass-removal');
   const dateIndex = args.indexOf('--date');
   const asOf = dateIndex === -1 ? new Date().toISOString().slice(0, 10) : args[dateIndex + 1];
   if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf || '')) throw new Error('--date takes a date like 2026-11-18');
@@ -261,9 +293,12 @@ async function main() {
     overrides: JSON.parse(fs.readFileSync(OVERRIDES_PATH, 'utf8')),
     asOf,
   });
-  if (!offline) fs.writeFileSync(SNAPSHOT_PATH, csvText);
-  fs.writeFileSync(OUTPUT_PATH, serialize(entries));
-  fs.writeFileSync(SNAPSHOT_INFO_PATH, `${JSON.stringify({ ...snapshot, asOf }, null, 2)}\n`);
+  checkRemovals(previous, entries, { allowMassRemoval });
+  writeFilesAtomic([
+    ...(offline ? [] : [[SNAPSHOT_PATH, csvText]]),
+    [OUTPUT_PATH, serialize(entries)],
+    [SNAPSHOT_INFO_PATH, `${JSON.stringify({ ...snapshot, asOf }, null, 2)}\n`],
+  ]);
 
   const activeCount = entries.filter((entry) => entry.active === 'Y').length;
   console.log(`Wrote ${entries.length} airlines, ${activeCount} of them active, as of ${asOf}.`);
@@ -288,4 +323,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { build, serialize, SNAPSHOT_PATH, SNAPSHOT_INFO_PATH, OVERRIDES_PATH, OUTPUT_PATH };
+module.exports = { build, serialize, checkRemovals, SNAPSHOT_PATH, SNAPSHOT_INFO_PATH, OVERRIDES_PATH, OUTPUT_PATH };

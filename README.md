@@ -69,8 +69,12 @@ It then prints:
 
 Read the report before you commit.
 
+A run builds and checks everything in memory first. Only then does it write the files, each through a temp file and rename, so a failed or interrupted run leaves the committed files as they were.
+A run that would leave more than 1% of the active codes without a holder stops without writing anything, because that is what a truncated download looks like. Validity dates alone end about five codes a year.
+
 - `node generate.js --offline` rebuilds from the committed snapshot without downloading, for example after editing `overrides.json`.
 - `--date 2026-11-18` builds the list as of another date.
+- `--allow-mass-removal` accepts a run that removes more than 1% of the active codes, when the removals are real.
 
 Never edit `airlines.json` by hand. A test fails when it differs from what `generate.js` builds.
 
@@ -90,7 +94,7 @@ When several such rows share a code, the first of these rules that separates the
 
 ### Manual corrections
 
-`overrides.json` is a list of corrections applied on every run. Each one needs a `note` saying why it exists. It also needs either an `id` or an `iata`:
+`overrides.json` is a list of corrections applied on every run. Each one needs a `reason` saying why it exists. It also needs either an `id` or an `iata`:
 
 - `id` matches that exact entry. If no entry has the id, the override adds a new entry, which needs a `name` and an `iata` or `icao`.
 - `iata` matches the code's active airline. It is an error when no one holds the code; match by `id` instead.
@@ -100,7 +104,7 @@ Any other fields in an override replace the entry's values. Setting `"active": "
 ```json
 [
   {
-    "note": "Travelin shows Norwegian as Norwegian Air.",
+    "reason": "Travelin shows Norwegian as Norwegian Air.",
     "iata": "DY",
     "name": "Norwegian Air"
   }

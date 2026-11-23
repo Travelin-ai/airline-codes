@@ -1,53 +1,53 @@
 [
   {
-    "note": "UVT Aero holds RT (Wikidata Q21482041; Amadeus listed check-in links for RT pointing to uvtaero.ru). OPTD has no current RT holder. ICAO left blank until verified.",
+    "reason": "UVT Aero holds RT (Wikidata Q21482041; Amadeus listed check-in links for RT pointing to uvtaero.ru). OPTD has no current RT holder. ICAO left blank until verified.",
     "id": "travelin-uvt-aero",
     "iata": "RT",
     "name": "UVT Aero",
     "active": "Y"
   },
   {
-    "note": "Kept from the 2022 hand fix (7fd6a61): Travelin shows Norwegian as Norwegian Air, not OPTD's Norwegian Air Shuttle AOC.",
+    "reason": "Kept from the 2022 hand fix (7fd6a61): Travelin shows Norwegian as Norwegian Air, not OPTD's Norwegian Air Shuttle AOC.",
     "iata": "DY",
     "name": "Norwegian Air"
   },
   {
-    "note": "Kept from the 2022 hand fix (7fd6a61): Travelin shows Norwegian as Norwegian Air, not OPTD's Norwegian Air Sweden AOC.",
+    "reason": "Kept from the 2022 hand fix (7fd6a61): Travelin shows Norwegian as Norwegian Air, not OPTD's Norwegian Air Sweden AOC.",
     "iata": "D8",
     "name": "Norwegian Air"
   },
   {
-    "note": "OPTD loses the accent and casing (Cubana De Aviacion).",
+    "reason": "OPTD loses the accent and casing (Cubana De Aviacion).",
     "iata": "CU",
     "name": "Cubana de Aviación"
   },
   {
-    "note": "OPTD writes the TAAG acronym as Taag and drops the rest of the name.",
+    "reason": "OPTD writes the TAAG acronym as Taag and drops the rest of the name.",
     "iata": "DT",
     "name": "TAAG Angola Airlines"
   },
   {
-    "note": "OPTD writes the MNG acronym as Mng.",
+    "reason": "OPTD writes the MNG acronym as Mng.",
     "iata": "MB",
     "name": "MNG Airlines Cargo"
   },
   {
-    "note": "OPTD writes the MIAT acronym as Miat.",
+    "reason": "OPTD writes the MIAT acronym as Miat.",
     "iata": "OM",
     "name": "MIAT Mongolian Airlines"
   },
   {
-    "note": "OPTD writes the LAM acronym as Lam.",
+    "reason": "OPTD writes the LAM acronym as Lam.",
     "iata": "TM",
     "name": "LAM Mozambique Airlines"
   },
   {
-    "note": "The airline writes its name RwandAir; OPTD has Rwandair.",
+    "reason": "The airline writes its name RwandAir; OPTD has Rwandair.",
     "iata": "WB",
     "name": "RwandAir"
   },
   {
-    "note": "Kept from the 2023 hand fix (6c61cc9) so 6X is named Amadeus Six. OPTD closed this Amadeus test code in 2014, so it stays inactive and out of the airline pickers; lookups still name it.",
+    "reason": "Kept from the 2023 hand fix (6c61cc9) so 6X is named Amadeus Six. OPTD closed this Amadeus test code in 2014, so it stays inactive and out of the airline pickers; lookups still name it.",
     "id": "air-amadeus-six-v1",
     "name": "Amadeus Six"
   }
